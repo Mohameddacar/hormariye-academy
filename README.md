@@ -259,4 +259,5 @@ For support, email support@hormariyeacademy.com or create an issue in the reposi
 
 ---
 
-**Built with ❤️ by Hormariye Academy**
+**Built with ❤️ by Hormariye Academy**#   h o r m - o n l i n e - p l a t f o r m  
+ 
