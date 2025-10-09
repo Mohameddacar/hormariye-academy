@@ -18,14 +18,18 @@ export async function POST(req) {
       .where(eq(usersTable.email, email));
 
     if (existing.length > 0) {
-      return NextResponse.json(existing[0]); // ama return all if you prefer
+      return NextResponse.json(existing[0]);
     }
 
-    // Create new user
+    // Create new user with default values
     const [created] = await db
       .insert(usersTable)
-      .values({ name, email })
-      .returning(); // <-- Postgres
+      .values({ 
+        name: name || "User", 
+        email,
+        subscriptionPlan: "free"
+      })
+      .returning();
 
     return NextResponse.json(created, { status: 201 });
   } catch (err) {

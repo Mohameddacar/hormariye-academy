@@ -4,6 +4,7 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
 
 import {
   Sidebar,
@@ -22,22 +23,25 @@ import {
   Book,
   Compass,
   LayoutDashboard,
-  PencilRuler,
   UserCheck,
   WalletCards,
+  Settings,
 } from "lucide-react";
+import AddNewCourseDialog from "./AddNewCourseDialog";
 
 const sideBarOptions = [
-  { title: "Dashboard",       icon: LayoutDashboard, path: "/" },
+  { title: "Dashboard",       icon: LayoutDashboard, path: "/workspace" },
   { title: "My Learning",     icon: Book,            path: "/workspace/my-courses" },
   { title: "Explore Courses", icon: Compass,         path: "/workspace/explore" },
-  { title: "AI Tools",        icon: PencilRuler,     path: "/workspace/ai-tools" },
   { title: "Billing",         icon: WalletCards,     path: "/workspace/billing" },
   { title: "Profile",         icon: UserCheck,       path: "/workspace/profile" },
+  { title: "Admin Panel",     icon: Settings,        path: "/admin" },
 ];
 
 export default function AppSidebar() {
   const pathname = usePathname();
+  const { user } = useUser();
+  const isAdmin = user?.primaryEmailAddress?.emailAddress === 'mohameddacarmohumed@gmail.com';
 
   return (
     <Sidebar>
@@ -56,14 +60,20 @@ export default function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
-        <SidebarGroup>
-          <Button className="mx-4">Create New Course</Button>
-        </SidebarGroup>
+        {isAdmin && (
+          <SidebarGroup>
+            <AddNewCourseDialog>
+              <Button className="mx-4">Create New Course</Button>
+            </AddNewCourseDialog>
+          </SidebarGroup>
+        )}
 
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {sideBarOptions.map((item) => {
+              {sideBarOptions
+                .filter((item) => (item.title === "Admin Panel" ? isAdmin : true))
+                .map((item) => {
                 const active =
                   item.path === "/"
                     ? pathname === "/"

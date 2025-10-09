@@ -1,9 +1,14 @@
+// app/workspace/page.jsx
 import React from 'react'
+import WelcomeBanner from './_components/WelcomeBanner'
+import CourseList from './_components/CourseList'
 
-const Workspace = () => {
+export default function WorkspacePage() {
   return (
-    <div>Workspace</div>
+    <div className="space-y-4">
+      <WelcomeBanner />
+      <CourseList />
+      {/* Add more dashboard sections/cards here */}
+    </div>
   )
 }
-
-export default Workspace
