@@ -35,7 +35,7 @@ export default function Home() {
               <BookOpen className="w-5 h-5 text-white" />
             </div>
             <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              AI-Powered Learning
+              Hormariye Academy
             </span>
           </div>
           <nav className="hidden md:flex items-center space-x-6">
@@ -74,7 +74,7 @@ export default function Home() {
           <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
             Unlock Your Potential with{" "}
             <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              AI-Powered Learning
+              Online Learning
             </span>{" "}
             🚀
           </h1>
@@ -121,7 +121,7 @@ export default function Home() {
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
                 <Brain className="w-6 h-6 text-blue-600" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">AI-Driven Personalization</h3>
+              <h3 className="text-xl font-semibold mb-3">Online Personalization</h3>
               <p className="text-gray-600">Tailored learning paths based on your progress and goals.</p>
             </div>
             <div className="bg-white p-8 rounded-xl shadow-sm hover:shadow-md transition-shadow">
@@ -183,12 +183,12 @@ export default function Home() {
                   <Users className="w-6 h-6 text-gray-600" />
                 </div>
                 <div>
-                  <h4 className="font-semibold">John Doe</h4>
+                  <h4 className="font-semibold">Mohamed Isak</h4>
                   <p className="text-gray-600">Student</p>
                 </div>
               </div>
               <p className="text-gray-700 italic">
-                "The AI-powered feedback has been a game-changer for my learning. It's like having a personal tutor!"
+                "The feedback has been a game-changer for my learning. It's like having a personal tutor!"
               </p>
             </div>
             <div className="bg-gray-50 p-8 rounded-xl">
@@ -197,12 +197,12 @@ export default function Home() {
                   <Users className="w-6 h-6 text-gray-600" />
                 </div>
                 <div>
-                  <h4 className="font-semibold">Jane Smith</h4>
+                  <h4 className="font-semibold">Mohamed Dacar</h4>
                   <p className="text-gray-600">Educator</p>
                 </div>
               </div>
               <p className="text-gray-700 italic">
-                "Integrating AI into my teaching has never been easier. The platform is intuitive and powerful."
+                "Integrating feedback into my teaching has never been easier. The platform is intuitive and powerful."
               </p>
             </div>
           </div>
@@ -214,9 +214,9 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-4 gap-8">
             <div>
-              <h3 className="text-lg font-semibold mb-4">AI-Powered Learning</h3>
+              <h3 className="text-lg font-semibold mb-4">Hormariye Academy Online Learning</h3>
               <p className="text-gray-400">
-                Empowering the next generation of learners with cutting-edge AI technology.
+                Empowering the next generation of learners with cutting-edge technology.
               </p>
             </div>
             <div>
@@ -245,7 +245,7 @@ export default function Home() {
             </div>
           </div>
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2025 Hormariye Academy AI-Powered Learning. All rights reserved.</p>
+            <p>&copy; 2025 Hormariye Academy Online Learning. All rights reserved.</p>
           </div>
         </div>
       </footer>
