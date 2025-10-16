@@ -47,6 +47,10 @@ next-env.d.ts
 *.mp4
 *.avi
 *.mov
+*.wmv
 *.zip
 *.tar
 *.tar.gz
+
+# Uploaded files
+public/uploads/
