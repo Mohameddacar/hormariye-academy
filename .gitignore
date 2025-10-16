@@ -42,3 +42,11 @@ next-env.d.ts
 
 # clerk configuration (can include secrets)
 /.clerk/
+
+.next/
+*.mp4
+*.avi
+*.mov
+*.zip
+*.tar
+*.tar.gz

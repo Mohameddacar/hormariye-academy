@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
-import { Upload, Youtube, FileVideo, Plus, Trash2, ArrowLeft, Save } from 'lucide-react'
+import { Upload, Youtube, FileVideo, Plus, Trash2, ArrowLeft, Save, Trash } from 'lucide-react'
 
 export default function EditCoursePage() {
   const params = useParams()
@@ -22,9 +22,11 @@ export default function EditCoursePage() {
     price: 0, isFree: true, includeVideo: true, videoSource: 'youtube', youtubeUrl: '', videoUrl: '',
     chapters: []
   })
-  const [newChapter, setNewChapter] = useState({ name: '', description: '', duration: '', videoSource: 'youtube', youtubeUrl: '', videoUrl: '', content: '' })
+  const [newChapter, setNewChapter] = useState({ section: '', name: '', description: '', duration: '', videoSource: 'youtube', youtubeUrl: '', videoUrl: '', content: '' })
   const [chapterFile, setChapterFile] = useState(null)
   const [bulkUploading, setBulkUploading] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState('')
 
   const uploadChapterFile = async (file) => {
     if (!file) return
@@ -131,6 +133,30 @@ export default function EditCoursePage() {
     }
   }
 
+  const handleDelete = async () => {
+    const confirm = window.confirm('Delete this course? This will remove enrollments and progress.');
+    if (!confirm) return;
+    try {
+      setDeleteError('')
+      setDeleting(true)
+      const res = await fetch(`/api/admin/courses/${params.id}`, { method: 'DELETE' })
+      if (res.ok) {
+        window.alert('Course deleted successfully')
+        router.push('/admin')
+      } else {
+        let msg = 'Delete failed'
+        try { msg = (await res.json())?.error || msg } catch {}
+        setDeleteError(msg)
+        console.error('delete failed')
+      }
+    } catch (e) {
+      setDeleteError('Delete failed. Please try again.')
+      console.error('delete failed', e)
+    } finally {
+      setDeleting(false)
+    }
+  }
+
   if (loading) return (<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div></div>)
 
   return (
@@ -150,6 +176,11 @@ export default function EditCoursePage() {
       </div>
 
       <div className="container mx-auto px-4 py-6">
+        {deleteError && (
+          <div className="mb-4 rounded-md border border-red-300 bg-red-50 px-4 py-3 text-red-700">
+            {deleteError}
+          </div>
+        )}
         <form onSubmit={handleSave} className="space-y-6">
           <Tabs defaultValue="basic" className="space-y-6">
             <TabsList className="grid w-full grid-cols-3">
@@ -225,7 +256,8 @@ export default function EditCoursePage() {
                   </div>
                   <div className="border rounded-lg p-4 space-y-4">
                     <h3 className="font-medium">Add New Chapter</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <Input placeholder="Section title (e.g., Introduction)" value={newChapter.section} onChange={(e)=>setNewChapter(p=>({...p,section:e.target.value}))} />
                       <Input placeholder="Chapter name" value={newChapter.name} onChange={(e)=>setNewChapter(p=>({...p,name:e.target.value}))} />
                       <Input placeholder="Duration (e.g., 30 minutes)" value={newChapter.duration} onChange={(e)=>setNewChapter(p=>({...p,duration:e.target.value}))} />
                     </div>
@@ -267,7 +299,10 @@ export default function EditCoursePage() {
             </TabsContent>
           </Tabs>
 
-          <div className="flex justify-end space-x-4">
+          <div className="flex justify-between items-center space-x-4">
+            <Button type="button" variant="destructive" onClick={handleDelete} disabled={deleting} className="bg-red-600 hover:bg-red-700 disabled:opacity-70">
+              <Trash className="w-4 h-4 mr-2"/>{deleting ? 'Deleting...' : 'Delete Course'}
+            </Button>
             <Link href="/admin"><Button type="button" variant="outline">Cancel</Button></Link>
             <Button type="submit" disabled={saving}>{saving ? (<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>) : (<Save className="w-4 h-4 mr-2"/>)}Save Changes</Button>
           </div>

@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -33,6 +34,8 @@ export default function AdminDashboard() {
   const [courses, setCourses] = useState([]);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState(null);
 
   useEffect(() => {
     if (!isLoaded) return;
@@ -74,18 +77,23 @@ export default function AdminDashboard() {
     }
   };
 
-  const deleteCourse = async (courseId) => {
-    if (confirm('Are you sure you want to delete this course?')) {
-      try {
-        const response = await fetch(`/api/admin/courses/${courseId}`, {
-          method: 'DELETE',
-        });
-        if (response.ok) {
-          setCourses(courses.filter(course => course.id !== courseId));
-        }
-      } catch (error) {
-        console.error('Error deleting course:', error);
+  const requestDelete = (courseId) => {
+    setPendingDeleteId(courseId);
+    setConfirmOpen(true);
+  };
+
+  const performDelete = async () => {
+    if (!pendingDeleteId) return;
+    try {
+      const response = await fetch(`/api/admin/courses/${pendingDeleteId}`, { method: 'DELETE' });
+      if (response.ok) {
+        setCourses(courses.filter(course => course.id !== pendingDeleteId));
       }
+    } catch (error) {
+      console.error('Error deleting course:', error);
+    } finally {
+      setConfirmOpen(false);
+      setPendingDeleteId(null);
     }
   };
 
@@ -238,7 +246,7 @@ export default function AdminDashboard() {
                         <Button 
                           variant="outline" 
                           size="sm"
-                          onClick={() => deleteCourse(course.id)}
+                          onClick={() => requestDelete(course.id)}
                           className="text-red-600 hover:text-red-700"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -318,6 +326,21 @@ export default function AdminDashboard() {
             </div>
           </TabsContent>
         </Tabs>
+
+        <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Delete course?</DialogTitle>
+              <DialogDescription>
+                This action will remove the course and all related enrollments and progress. This cannot be undone.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setConfirmOpen(false)}>Cancel</Button>
+              <Button className="bg-red-600 hover:bg-red-700" onClick={performDelete}>Delete</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

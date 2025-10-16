@@ -207,6 +207,9 @@ export default function CourseDetailPage() {
   const currentChapterData = chapters[currentChapter];
   const coursePrice = course.courseJson?.price || 0;
   const isFree = course.courseJson?.isFree || coursePrice === 0;
+  const outcomes = (course.courseJson?.outcomes || '').split(/\r?\n/).filter(Boolean);
+  const requirements = (course.courseJson?.requirements || '').split(/\r?\n/).filter(Boolean);
+  const targetAudience = (course.courseJson?.targetAudience || '').split(/\r?\n/).filter(Boolean);
   const courseVideoSource = course.courseJson?.videoSource;
   const courseYoutubeUrl = course.courseJson?.youtubeUrl;
   const courseVideoUrl = course.courseJson?.videoUrl;
@@ -317,45 +320,73 @@ export default function CourseDetailPage() {
               </CardContent>
             </Card>
 
-            {/* Chapter List */}
-            {isEnrolled && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <BookOpen className="w-5 h-5 mr-2" />
-                    Chapters ({chapters.length})
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <div className="max-h-96 overflow-y-auto">
-                    {chapters.map((chapter, index) => (
-                      <div
-                        key={index}
-                        className={`p-4 border-b cursor-pointer hover:bg-gray-50 ${
-                          index === currentChapter ? 'bg-blue-50 border-blue-200' : ''
-                        }`}
-                        onClick={() => setCurrentChapter(index)}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h4 className="font-medium text-sm">{chapter.chapterName || chapter.name}</h4>
-                            <p className="text-xs text-gray-500">{chapter.duration}</p>
+            {/* Chapter List - visible to all; gated for non-enrolled */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <BookOpen className="w-5 h-5 mr-2" />
+                  Curriculum
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="max-h-96 overflow-y-auto">
+                  {(() => {
+                    // Group chapters by section
+                    const groups = chapters.reduce((acc, ch, idx) => {
+                      const key = ch.section || 'General';
+                      if (!acc[key]) acc[key] = [];
+                      acc[key].push({ chapter: ch, index: idx });
+                      return acc;
+                    }, {});
+                    return Object.entries(groups).map(([section, items], sIdx) => {
+                      const totalMins = items.reduce((t, it) => {
+                        const m = String(it.chapter.duration || '').match(/(\d+)/);
+                        const minutes = m ? parseInt(m[1]) : 0;
+                        return t + (Number.isFinite(minutes) ? minutes : 0);
+                      }, 0);
+                      return (
+                        <div key={sIdx} className="border-b">
+                          <div className="px-4 py-2 bg-gray-100 text-sm font-semibold flex items-center justify-between">
+                            <span>{section}</span>
+                            <span className="text-gray-600">{items.length} lectures • {totalMins} min</span>
                           </div>
-                          <div className="flex items-center space-x-2">
-                            {index < currentChapter && (
-                              <CheckCircle className="w-4 h-4 text-green-500" />
-                            )}
-                            {index === currentChapter && (
-                              <Play className="w-4 h-4 text-blue-500" />
-                            )}
-                          </div>
+                          {items.map(({ chapter, index }) => (
+                            <div
+                              key={index}
+                              className={`p-4 cursor-pointer hover:bg-gray-50 ${index === currentChapter ? 'bg-blue-50' : ''}`}
+                              onClick={() => {
+                                if (!isEnrolled) {
+                                  handleEnroll();
+                                  return;
+                                }
+                                setCurrentChapter(index);
+                              }}
+                            >
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <h4 className="font-medium text-sm">{chapter.chapterName || chapter.name}</h4>
+                                  <p className="text-xs text-gray-500">{chapter.duration}</p>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  {isEnrolled ? (
+                                    <>
+                                      {index < currentChapter && (<CheckCircle className="w-4 h-4 text-green-500" />)}
+                                      {index === currentChapter && (<Play className="w-4 h-4 text-blue-500" />)}
+                                    </>
+                                  ) : (
+                                    <Badge variant="outline">Enroll to watch</Badge>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+                      );
+                    });
+                  })()}
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Main Content */}
@@ -396,6 +427,36 @@ export default function CourseDetailPage() {
                         <p className="text-sm text-gray-600">Difficulty level</p>
                       </div>
                     </div>
+
+                    {/* Outcomes & Requirements */}
+                    {(outcomes.length > 0 || requirements.length > 0 || targetAudience.length > 0) && (
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {outcomes.length > 0 && (
+                          <div>
+                            <h3 className="text-xl font-semibold mb-3">What you'll learn</h3>
+                            <ul className="list-disc list-inside text-gray-700 space-y-1">
+                              {outcomes.map((o, i) => (<li key={i}>{o}</li>))}
+                            </ul>
+                          </div>
+                        )}
+                        {requirements.length > 0 && (
+                          <div>
+                            <h3 className="text-xl font-semibold mb-3">Requirements</h3>
+                            <ul className="list-disc list-inside text-gray-700 space-y-1">
+                              {requirements.map((r, i) => (<li key={i}>{r}</li>))}
+                            </ul>
+                          </div>
+                        )}
+                        {targetAudience.length > 0 && (
+                          <div>
+                            <h3 className="text-xl font-semibold mb-3">Who this course is for</h3>
+                            <ul className="list-disc list-inside text-gray-700 space-y-1">
+                              {targetAudience.map((t, i) => (<li key={i}>{t}</li>))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     <div>
                       <h3 className="text-xl font-semibold mb-4">What You'll Learn</h3>

@@ -22,8 +22,12 @@ export async function POST(request) {
 
     // Basic validation
     const name = (courseData.name || '').trim();
+    const subtitle = (courseData.subtitle || '').trim();
     const description = (courseData.description || '').trim();
     const category = (courseData.category || '').trim();
+    const subcategory = (courseData.subcategory || '').trim();
+    const language = (courseData.language || '').trim();
+    const primaryTopic = (courseData.primaryTopic || '').trim();
     const level = (courseData.level || '').trim();
     const includeVideo = Boolean(courseData.includeVideo);
     const isFree = Boolean(courseData.isFree);
@@ -31,6 +35,13 @@ export async function POST(request) {
     const videoSource = courseData.videoSource === 'upload' ? 'upload' : 'youtube';
     const youtubeUrl = (courseData.youtubeUrl || '').trim();
     const videoUrl = (courseData.videoUrl || '').trim();
+    const bannerImageUrl = (courseData.bannerImageUrl || '').trim();
+    const instructorName = (courseData.instructorName || '').trim();
+    const instructorBio = (courseData.instructorBio || '').trim();
+    const outcomes = (courseData.outcomes || '').trim();
+    const requirements = (courseData.requirements || '').trim();
+    const targetAudience = (courseData.targetAudience || '').trim();
+    const totalDurationMinutes = Number(courseData.totalDurationMinutes || 0);
     const chapters = Array.isArray(courseData.chapters) ? courseData.chapters : [];
     const noOfChapters = chapters.length;
 
@@ -49,6 +60,7 @@ export async function POST(request) {
     // Normalize chapters
     const normalizedChapters = chapters.map((c, idx) => ({
       id: c.id ?? idx + 1,
+      section: (c.section || '').trim(),
       name: (c.name || '').trim(),
       description: (c.description || '').trim(),
       duration: (c.duration || '').trim(),
@@ -71,13 +83,24 @@ export async function POST(request) {
         includeVideo,
         isPublished: true,
         userEmail: user.primaryEmailAddress?.emailAddress,
+        bannerImageUrl: bannerImageUrl || null,
         courseJson: {
+          subtitle,
+          subcategory,
+          language,
+          primaryTopic,
           chapters: normalizedChapters,
           price,
           isFree,
           videoSource,
           youtubeUrl,
-          videoUrl
+          videoUrl,
+          instructorName,
+          instructorBio,
+          outcomes,
+          requirements,
+          targetAudience,
+          totalDurationMinutes
         }
       })
       .returning();

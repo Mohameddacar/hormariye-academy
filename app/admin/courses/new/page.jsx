@@ -26,20 +26,33 @@ export default function NewCoursePage() {
   const [loading, setLoading] = useState(false);
   const [courseData, setCourseData] = useState({
     name: '',
+    subtitle: '',
     description: '',
     category: '',
+    subcategory: '',
+    language: 'English (US)',
+    primaryTopic: '',
     level: 'beginner',
     price: 0,
     isFree: true,
     includeVideo: true,
     videoSource: 'youtube', // 'youtube' or 'upload'
     youtubeUrl: '',
+    videoUrl: '',
+    bannerImageUrl: '',
+    instructorName: '',
+    instructorBio: '',
+    outcomes: '', // textarea, newline-delimited
+    requirements: '', // textarea, newline-delimited
+    targetAudience: '', // textarea, newline-delimited
     chapters: []
   });
   const [fileToUpload, setFileToUpload] = useState(null);
+  const [thumbnailFile, setThumbnailFile] = useState(null);
   const [bulkUploading, setBulkUploading] = useState(false);
 
   const [newChapter, setNewChapter] = useState({
+    section: '',
     name: '',
     description: '',
     duration: '',
@@ -137,6 +150,35 @@ export default function NewCoursePage() {
         uploadUrl = url;
       }
 
+      let bannerUrl = courseData.bannerImageUrl;
+      if (thumbnailFile) {
+        const imgForm = new FormData();
+        imgForm.append('file', thumbnailFile);
+        const upImg = await fetch('/api/upload', { method: 'POST', body: imgForm });
+        if (!upImg.ok) throw new Error('Image upload failed');
+        const { url } = await upImg.json();
+        bannerUrl = url;
+      }
+
+      // Basic validation per standard
+      const name = (courseData.name || '').trim();
+      const description = (courseData.description || '').trim();
+      if (!name || !description) throw new Error('Course title and description are required');
+      if (!Array.isArray(courseData.chapters) || courseData.chapters.length === 0) {
+        throw new Error('At least one module/lesson is required');
+      }
+      const hasLessonContent = courseData.chapters.some(c => ((c.youtubeUrl && c.youtubeUrl.trim()) || (c.videoUrl && c.videoUrl.trim())));
+      if (!hasLessonContent && !(courseData.youtubeUrl || uploadUrl)) {
+        throw new Error('Provide at least one lesson video or URL');
+      }
+
+      // compute total duration from chapter durations (numbers in minutes in strings)
+      const totalDurationMinutes = (courseData.chapters || []).reduce((total, ch) => {
+        const m = String(ch.duration || '').match(/(\d+)/);
+        const minutes = m ? parseInt(m[1]) : 0;
+        return total + (Number.isFinite(minutes) ? minutes : 0);
+      }, 0);
+
       const response = await fetch('/api/admin/courses', {
         method: 'POST',
         headers: {
@@ -144,7 +186,11 @@ export default function NewCoursePage() {
         },
         body: JSON.stringify({
           ...courseData,
-          videoUrl: uploadUrl,
+          videoUrl: uploadUrl || courseData.videoUrl,
+          bannerImageUrl: bannerUrl,
+          instructorName: courseData.instructorName,
+          instructorBio: courseData.instructorBio,
+          totalDurationMinutes,
           noOfChapters: courseData.chapters.length
         }),
       });
@@ -289,6 +335,41 @@ export default function NewCoursePage() {
                       </label>
                     </div>
                   </div>
+
+                  {/* Thumbnail */}
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 mb-2 block">Course Image/Thumbnail</label>
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => setThumbnailFile(e.target.files?.[0] || null)}
+                      />
+                      {courseData.bannerImageUrl && (
+                        <p className="text-sm text-gray-500 mt-2">Current: {courseData.bannerImageUrl}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Instructor Info */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-medium text-gray-700 mb-2 block">Instructor Name</label>
+                      <Input
+                        placeholder="Your name"
+                        value={courseData.instructorName}
+                        onChange={(e) => handleInputChange('instructorName', e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-700 mb-2 block">Instructor Bio</label>
+                      <Input
+                        placeholder="Short profile"
+                        value={courseData.instructorBio}
+                        onChange={(e) => handleInputChange('instructorBio', e.target.value)}
+                      />
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
@@ -368,17 +449,26 @@ export default function NewCoursePage() {
                 <CardContent className="space-y-4">
                   <div className="border rounded-lg p-4 space-y-3 bg-gray-50">
                     <h3 className="font-medium">Bulk Upload Videos (optional)</h3>
-                    <p className="text-sm text-gray-600">Select multiple video files to create chapters automatically.</p>
-                    <input type="file" accept="video/*" multiple onChange={(e)=> bulkUploadChapters(e.target.files)} />
+                    <p className="text-sm text-gray-600">Select multiple files or a folder to create chapters automatically.</p>
+                    <div className="space-y-2">
+                      <input type="file" accept="video/*" multiple onChange={(e)=> bulkUploadChapters(e.target.files)} />
+                      {/* Some browsers support directory selection with these attributes */}
+                      <input type="file" accept="video/*" webkitdirectory="" directory="" onChange={(e)=> bulkUploadChapters(e.target.files)} />
+                    </div>
                     {bulkUploading && <p className="text-sm text-gray-500">Uploading...</p>}
                   </div>
 
                   {/* Add Chapter Form */}
                   <div className="border rounded-lg p-4 space-y-4">
                     <h3 className="font-medium">Add New Chapter</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <Input
-                        placeholder="Chapter name"
+                        placeholder="Section title (e.g., Introduction)"
+                        value={newChapter.section}
+                        onChange={(e) => setNewChapter(prev => ({ ...prev, section: e.target.value }))}
+                      />
+                      <Input
+                        placeholder="Module/Section name"
                         value={newChapter.name}
                         onChange={(e) => setNewChapter(prev => ({ ...prev, name: e.target.value }))}
                       />
@@ -431,6 +521,7 @@ export default function NewCoursePage() {
                         <div className="flex items-center justify-between">
                           <div>
                             <h4 className="font-medium">{chapter.name}</h4>
+                            {chapter.section && (<p className="text-xs text-gray-500">Section: {chapter.section}</p>)}
                             <p className="text-sm text-gray-600">{chapter.description}</p>
                             <p className="text-xs text-gray-500">
                               {chapter.duration} • {chapter.content}

@@ -1,7 +1,7 @@
 import { currentUser } from '@clerk/nextjs/server';
 import { db } from '@/config/db';
 import { usersTable, enrollmentsTable } from '@/config/schema';
-import { eq } from 'drizzle-orm';
+import { eq, count } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 
 export async function GET() {
@@ -27,11 +27,17 @@ export async function GET() {
         email: usersTable.email,
         subscriptionPlan: usersTable.subscriptionPlan,
         createdAt: usersTable.createdAt,
-        enrolledCourses: enrollmentsTable.id
+        enrolledCount: count(enrollmentsTable.id).as('enrolledCount'),
       })
       .from(usersTable)
       .leftJoin(enrollmentsTable, eq(usersTable.id, enrollmentsTable.userId))
-      .groupBy(usersTable.id)
+      .groupBy(
+        usersTable.id,
+        usersTable.name,
+        usersTable.email,
+        usersTable.subscriptionPlan,
+        usersTable.createdAt,
+      )
       .orderBy(usersTable.createdAt);
 
     return NextResponse.json(users);

@@ -51,8 +51,8 @@ export default function AppSidebar() {
           <Image
             src="/hormlogo.png"   // make sure this file exists in /public
             alt="Hormariye Academy"
-            width={56}
-            height={56}
+            width={100}
+            height={120}
             className="block m-0"
             priority
           />
@@ -63,7 +63,7 @@ export default function AppSidebar() {
         {isAdmin && (
           <SidebarGroup>
             <AddNewCourseDialog>
-              <Button className="mx-4">Create New Course</Button>
+             <Button className="mx-4">Create New Course</Button>
             </AddNewCourseDialog>
           </SidebarGroup>
         )}

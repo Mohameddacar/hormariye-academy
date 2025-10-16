@@ -30,7 +30,7 @@ export const coursesTable = pgTable("courses", {
 export const enrollmentsTable = pgTable("enrollments", {
   id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
   userId: integer("userId").references(() => usersTable.id),
-  courseId: integer("courseId").references(() => coursesTable.id),
+  courseId: integer("courseId").references(() => coursesTable.id, { onDelete: 'cascade' }),
   enrolledAt: timestamp("enrolledAt").defaultNow(),
   progress: decimal("progress", { precision: 5, scale: 2 }).default("0.00"),
   completedChapters: jsonb("completedChapters").default([]),
@@ -40,7 +40,7 @@ export const enrollmentsTable = pgTable("enrollments", {
 export const progressTable = pgTable("progress", {
   id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
   userId: integer("userId").references(() => usersTable.id),
-  courseId: integer("courseId").references(() => coursesTable.id),
+  courseId: integer("courseId").references(() => coursesTable.id, { onDelete: 'cascade' }),
   chapterId: varchar("chapterId", { length: 64 }),
   isCompleted: boolean("isCompleted").default(false),
   completedAt: timestamp("completedAt"),
